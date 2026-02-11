@@ -275,10 +275,10 @@ class OLED():
 
         # ---- display info ----
         header_rect = Rect(39,  0, 88, 10)
-        discord_info_rect = Rect(39, 17, 88, 10)
-        discord_status_rect = Rect(39, 29, 88, 10)
-        memory_info_rect =  Rect(39, 41, 88, 10)
-        memory_rect =       Rect(39, 53, 88, 10)
+        discord_info_rect = Rect(39, 14, 88, 10)
+        discord_status_rect = Rect(39, 26, 88, 10)
+        memory_info_rect =  Rect(39, 40, 88, 10)
+        memory_rect =       Rect(39, 52, 88, 10)
 
         LEFT_AREA_X = 18
         # cpu usage
@@ -298,6 +298,13 @@ class OLED():
         center_x = discord_status_rect.x + (discord_status_rect.width // 2)
         center_y = discord_status_rect.y + (discord_status_rect.height // 2)
         status_text = str(discord_status)
+        status_map = {
+            'online': 'Online',
+            'idle': 'Idle',
+            'offline': 'Offline',
+            'dnd': 'Do Not Disturb',
+        }
+        status_text = status_map.get(status_text, status_text)
         try:
             if hasattr(self.oled.draw, "textlength"):
                 text_width = self.oled.draw.textlength(status_text, font=self.oled.font)
@@ -309,7 +316,7 @@ class OLED():
 
         text_start_x = center_x - (text_width / 2)
         radius = 4
-        padding = 5
+        padding = 2
         circle_center_x = text_start_x - radius - padding
         self.oled.draw.ellipse((circle_center_x - radius, center_y - radius, circle_center_x + radius, center_y + radius), outline=1, fill=1 if status_text.lower() == "online" else 0)
         self.oled.draw_text(status_text, *discord_status_rect.topcenter(), align='center')
