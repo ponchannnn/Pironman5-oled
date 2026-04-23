@@ -1,3 +1,4 @@
+# /opt/pironman5/venv/lib/python3.12/site-packages/pm_auto/oled.py
 from .ssd1306 import SSD1306, Rect
 from sf_rpi_status import \
     get_cpu_temperature, \
@@ -14,6 +15,7 @@ import datetime
 import os
 from PIL import ImageFont
 import json
+import redis
 
 OLED_DEFAULT_CONFIG = {
     'temperature_unit': 'C',
@@ -59,6 +61,12 @@ class OLED():
         self.bot_checked = False
         self.header_mode = 'TIME' # 'TIME' or 'IP'
         self.header_switch_time = time.time()
+
+        try:
+            self.redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        except redis.exceptions.ConnectionError as e:
+            self.log.error(f"Failed to connect to Redis: {e}")
+            self.redis_client = None
 
     @log_error
     def set_debug_level(self, level):
@@ -260,11 +268,9 @@ class OLED():
             header_str = ip
 
         discord_status = "No Data"
-        status_file = "/tmp/discord_status.txt"
         try:
-            if os.path.exists(status_file):
-                with open(status_file, "r") as f:
-                    discord_status = f.read().strip()
+            if self.redis_client:
+                discord_status = self.redis_client.get("discord_status")
             else:
                 discord_status = "Waiting..."
         except Exception:
